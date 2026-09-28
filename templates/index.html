@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veritas Engine | Advanced Phishing Detection</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+:root {
+  --bg-primary: #1E1E2E; 
+  --bg-card: #2A2A3B;    
+  --text-primary: #E4E4E7;
+  --text-muted: #A1A1AA;
+  --accent: #F472B6;      
+  --btn-primary: #3B82F6;
+  --btn-hover: #2563EB;
+  --success: #4ADE80;
+  --warning: #FBBF24;
+  --danger: #EF4444;
+  --radius: 12px;
+  --shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:'Poppins',sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.container{
+  max-width:900px;
+  width:100%;
+  background-color: var(--bg-card);
+  padding:32px;
+  border-radius:var(--radius);
+  box-shadow: var(--shadow);
+}
+
+h1{
+  text-align:center;
+  color: var(--accent);
+  margin-bottom: 5px;
+  font-weight: 700;
+  text-transform: none;
+}
+h2{
+  text-align:center;
+  color: var(--text-muted);
+  margin-bottom: 30px;
+  font-weight: 400;
+  font-size: 1.1rem;
+  text-transform: none;
+}
+
+textarea{
+  width:100%;
+  min-height:240px;
+  padding:18px;
+  border-radius: var(--radius);
+  border:1px solid #444;
+  background-color:#1F1F2F;
+  color:var(--text-primary);
+  font-family:'Consolas', monospace;
+  font-size:14px;
+  resize:vertical;
+  outline:none;
+  margin-bottom:20px;
+}
+textarea::placeholder{ color: var(--text-muted); }
+
+button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius: var(--radius);
+  background-color: var(--btn-primary);
+  color:white;
+  font-size:1.1rem;
+  font-weight:600;
+  cursor:pointer;
+  transition: all 0.3s;
+  text-transform:none;
+}
+button:hover{ background-color: var(--btn-hover); transform: translateY(-2px); }
+
+.result-box{
+  margin-top:28px;
+  padding:24px;
+  border-radius: var(--radius);
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-start;
+  border:1px solid #333;
+  background-color:#1F1F2F;
+}
+
+.prediction{
+  font-size:1.05rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-transform:none;
+}
+
+.prediction .dot{
+  width:14px; height:14px; border-radius:50%; display:inline-block;
+}
+
+.risk-high { border-left:5px solid var(--danger); }
+.risk-medium { border-left:5px solid var(--warning); }
+.risk-low { border-left:5px solid var(--success); }
+
+.meta{ color: var(--text-muted); font-size:0.9rem; margin-top:8px; text-transform:none; }
+
+.progress-wrap{ display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+.progress-bar{ width:220px; height:14px; border-radius:10px; overflow:hidden; background:#333; }
+.progress-fill{
+  height:100%; width:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:600; color:#fff;
+  transition: width 0.8s ease;
+  border-radius:10px;
+}
+.fill-success{ background-color: var(--success); }
+.fill-danger{ background-color: var(--danger); }
+
+.footnote{ color: var(--text-muted); font-size:0.85rem; text-align:center; margin-top:12px; text-transform:none; }
+
+@media (max-width:720px){
+  .result-box{ flex-direction:column; align-items:flex-start; }
+  .progress-wrap{ justify-content:flex-start; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>Veritas Engine <i class="bi bi-shield-lock-fill"></i></h1>
+<h2>DistilBERT-powered advanced contextual phishing analysis</h2>
+
+<form method="POST">
+  <textarea name="email_content" placeholder="Paste full email text here..." required>{{ email_content or '' }}</textarea>
+  <button type="submit"><i class="bi bi-robot"></i> Analyze with DistilBERT</button>
+</form>
+
+{% if result_label %}
+{% set confidence_val = confidence.replace('%','') | float %}
+{% set safe_val = (100 - confidence_val) %}
+{% set result_class = "" %}
+{% set dot_color = "" %}
+
+{# Format prediction text with proper spacing #}
+{% if result_label == 'PHISHING' %}
+  {% if confidence_val >= 95 %}
+    {% set result_class = "risk-high" %}
+    {% set dot_color = "background: var(--danger);" %}
+    {% set prediction_text = "High risk — phishing detected" %}
+  {% else %}
+    {% set result_class = "risk-medium" %}
+    {% set dot_color = "background: var(--warning);" %}
+    {% set prediction_text = "Moderate risk — verify content" %}
+  {% endif %}
+{% else %}
+  {% set result_class = "risk-low" %}
+  {% set dot_color = "background: var(--success);" %}
+  {% set prediction_text = "Low risk — email appears legitimate" %}
+{% endif %}
+
+<div class="result-box {{ result_class }}">
+  <div>
+    <!-- Prediction -->
+    <div class="prediction">
+      <span class="dot" style="{{ dot_color }}"></span>
+      <span id="prediction-text">{{ prediction_text }}</span>
+    </div>
+
+    <!-- Model certainty text -->
+    <div class="meta">
+      Model certainty: <strong>{{ confidence }}</strong> • Safe likelihood: <strong>{{ safe_val | round(2) }}%</strong>
+    </div>
+
+    <!-- Progress / range bars -->
+    <div class="progress-wrap">
+      {% if result_label == 'PHISHING' %}
+        <div class="progress-bar">
+          <div class="progress-fill fill-success" style="width: {{ safe_val }}%;">{% if safe_val>8 %}{{ safe_val | round(0) }}%{% endif %}</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill fill-danger" style="width: {{ confidence_val }}%;">{% if confidence_val>8 %}{{ confidence_val | round(0) }}%{% endif %}</div>
+        </div>
+      {% else %}
+        <div class="progress-bar">
+          <div class="progress-fill fill-success" style="width: {{ confidence_val }}%;">{% if confidence_val>8 %}{{ confidence_val | round(0) }}%{% endif %}</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill fill-danger" style="width: {{ safe_val }}%;">{% if safe_val>8 %}{{ safe_val | round(0) }}%{% endif %}</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Tip at the bottom -->
+    <div class="footnote">
+      Tip: Hover over links and verify sender domain carefully; attachments with macros are high risk.
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<p class="footnote">© {{current_year}} Team Veritas • Veritas Engine</p>
+</div>
+
+</body>
+</html>

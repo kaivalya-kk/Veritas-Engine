@@ -1,0 +1,16 @@
+# Python Specific Files
+__pycache__/
+*.pyc
+venv/
+.ipynb_checkpoints
+
+# Machine Learning Artifacts
+/veritas_results/
+/veritas_logs/
+# IMPORTANT: Model files can be large, but you might need to keep them if they are under 100MB
+# If your 'veritas_engine_model' folder is over 100MB, you should list it here:
+# /veritas_engine_model/
+# Private training datasets
+/dataset/Enron.csv
+/dataset/Phishing_validation_emails (1).csv
+/dataset/spam.csv
